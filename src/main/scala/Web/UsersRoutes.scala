@@ -1,6 +1,7 @@
 package Web
 
-import Data.{AccountService, SessionService, Session}
+import Data.{AccountService, Session, SessionService}
+import Web.Decorators.getSession
 
 /**
   * Assembles the routes dealing with the users:
@@ -13,16 +14,42 @@ import Data.{AccountService, SessionService, Session}
   */
 class UsersRoutes(accountSvc: AccountService,
                   sessionSvc: SessionService)(implicit val log: cask.Logger) extends cask.Routes:
-    // TODO - Part 3 Step 3a: Display a login form and register form page for the following URL: `/login`.
-    // TODO - Part 3 Step 3b: Process the login information sent by the form with POST to `/login`,
-    //      set the user in the provided session (if the user exists) and display a successful or
-    //      failed login page.
-    //
-    // TODO - Part 3 Step 3c: Process the register information sent by the form with POST to `/register`,
-    //      create the user, set the user in the provided session and display a successful
-    //      register page.
-    //
-    // TODO - Part 3 Step 3d: Reset the current session and display a successful logout page.
+    @getSession(sessionSvc)
+    @cask.get("/login")
+    def login()(session: Session): ScalaTag =
+        Layouts.loginPage()
+
+    @getSession(sessionSvc)
+    @cask.get("/register")
+    def register()(session: Session): ScalaTag =
+        Layouts.registerPage()
+
+    @getSession(sessionSvc)
+    @cask.postForm("/login")
+    def setLogin(text: cask.FormValue)(session: Session): ScalaTag =
+        val username = text.value
+        if accountSvc.isAccountExisting(username) then
+            session.setCurrentUser(username)
+            Layouts.loginStatusChangedPage(true,"You are logged in !")
+        else
+            Layouts.loginPage("The specified user does not exists")
+
+    @getSession(sessionSvc)
+    @cask.postForm("/register")
+    def setRegister(text: cask.FormValue)(session: Session): ScalaTag =
+        val username = text.value
+        if accountSvc.isAccountExisting(username) then
+            Layouts.registerPage("The specified user already exist.")
+        else
+            accountSvc.addAccount(username, 30)
+            session.setCurrentUser(username)
+            Layouts.loginStatusChangedPage(true,"Account created ! You are logged in !")
+
+    @getSession(sessionSvc)
+    @cask.get("/logout")
+    def unsetLogin()(session: Session): ScalaTag =
+        session.reset()
+        Layouts.loginStatusChangedPage(false,"You have logged out successfully")
 
     initialize()
 end UsersRoutes

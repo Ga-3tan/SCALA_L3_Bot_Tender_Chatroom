@@ -20,11 +20,8 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
 
     @getSession(sessionSvc) // This decorator fills the `(session: Session)` part of the `index` method.
     @cask.get("/")
-    def index()(session: Session) =
-        // TODO - Part 3 Step 2: Display the home page (with the message board and the form to send new messages)
-//        session.getCurrentUser.map(u => s"You are logged in as ${u} !")
-//               .getOrElse("You are not logged in !")
-      Layouts.page()
+    def index()(session: Session): ScalaTag =
+      Layouts.homePage(session.getCurrentUser.isDefined)
 
 
     // TODO - Part 3 Step 4b: Process the new messages sent as JSON object to `/send`. The JSON looks
