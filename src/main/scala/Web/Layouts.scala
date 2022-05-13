@@ -10,12 +10,21 @@ type ScalaTag = scalatags.Text.TypedTag[String]
   */
 object Layouts:
   // You can use it to store your methods to generate ScalaTags.
-  def page(): ScalaTag =
+  def index(): ScalaTag =
     html(
       getHeader,
       body(
         getNav,
-        getContentDiv,
+        getMessageContentDiv,
+      )
+    )
+
+  def login(errorLogin: Boolean = false, errorRegister: Boolean = false): ScalaTag =
+    html(
+      getHeader,
+      body(
+        getNav,
+        getLoginContentDiv(errorLogin ,errorRegister),
       )
     )
 
@@ -37,7 +46,8 @@ object Layouts:
       ),
     )
 
-  def getContentDiv: ScalaTag =
+  // Messages
+  def getMessageContentDiv: ScalaTag =
     div(`class` := "content")(
       getBoardMessage,
       getForm,
@@ -62,6 +72,35 @@ object Layouts:
         "Your message:"
       ),
       input(id := "messageInput", `type` := "text", placeholder := "Write your message"),
+      input(`type` := "submit"),
+    )
+
+  // Login
+  def getLoginContentDiv(errorLogin: Boolean, errorRegister: Boolean): ScalaTag =
+    div(`class` := "content")(
+      p(`class` := "title1")("Login"),
+      getLoginForm(errorLogin),
+      p(`class` := "title1")("Register"),
+      getRegisterForm(errorRegister),
+    )
+
+  def getLoginForm(error: Boolean): ScalaTag =
+    form(id := "loginForm", action := "/login", method := "POST")(
+      div(`class` := "errorMsg")(if error then "The specified user does not exists" else ""),
+      label(`for` := "loginInput")(
+        "Username:"
+      ),
+      input(name := "username", id := "loginInput", `type` := "text", placeholder := "Write your username"),
+      input(`type` := "submit"),
+    )
+
+  def getRegisterForm(error: Boolean): ScalaTag =
+    form(id := "registerForm", action := "/register", method := "POST")(
+      div(`class` := "errorMsg")(if error then "The specified user already exists" else ""),
+      label(`for` := "registerInput")(
+        "Username:"
+      ),
+      input(name := "username", id := "registerInput", `type` := "text", placeholder := "Write your username"),
       input(`type` := "submit"),
     )
 
