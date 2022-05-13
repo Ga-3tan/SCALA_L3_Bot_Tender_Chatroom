@@ -21,9 +21,9 @@ object Layouts:
       )
     )
 
-  def homePage(isLogIn: Boolean = false): ScalaTag =
+  def homePage(isLogged: Boolean = false): ScalaTag =
     bodyPage(
-      getConnectionNavItems(isLogIn),
+      getConnectionNavItems(isLogged),
       Seq(
         getBoardMessage,
         getForm(
@@ -96,8 +96,8 @@ object Layouts:
     navItem("/", "Go to the message board")
 
   // Get the navigation items based on the login status
-  def getConnectionNavItems(isLogIn: Boolean): Seq[ScalaTag] =
-    if isLogIn then
+  def getConnectionNavItems(isLogged: Boolean): Seq[ScalaTag] =
+    if isLogged then
       Seq(navItem("/logout", "logout"))
     else
       Seq(
@@ -124,7 +124,7 @@ object Layouts:
               submitPath: String,
               placeholderText: String,
               errorMsg: String = null): ScalaTag =
-    val divError =
+    val divError: Seq[ScalaTag] =
       if errorMsg != null then
         Seq(div(id := "errorDiv", `class` := "errorMsg",errorMsg))
       else Seq()
@@ -132,7 +132,7 @@ object Layouts:
     val content: Seq[ScalaTag] =
       Seq(
         label(`for` := "messageInput")(text),
-        input(name := "text" ,id := "messageInput", `type` := "text", placeholder := placeholderText),
+        input(name := "text", id := "messageInput", `type` := "text", placeholder := placeholderText),
         input(`type` := "submit"),
       )
 
