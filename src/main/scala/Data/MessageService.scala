@@ -3,6 +3,7 @@ package Data
 import Chat.ExprTree
 import Data.MessageService.{MsgContent, Username}
 import scalatags.Text.Frag
+import scala.collection.mutable
 
 
 object MessageService:
@@ -37,11 +38,22 @@ class MessageImpl extends MessageService:
     // TODO - Part 3 Step 4a: Store the messages and the corresponding user in memory.
     //       Implement methods to add new messages, to get the last 20 messages and to delete all existing messages.
 
+    val messages: mutable.ArrayBuffer[StoredMessage] = mutable.ArrayBuffer()
+
     override def add(sender: Username, msg: MsgContent, mention: Option[Username] = None, exprType: Option[ExprTree] = None, replyToId: Option[Long] = None): Long =
-        ???
+      val id = messages.size
+      messages.addOne(StoredMessage(id, sender, msg, mention, exprType, replyToId))
+      id
 
     override def getLatestMessages(n: Int) =
-        ???
+      messages.take(20).map(m => (m.username, m.content)).toSeq
 
     override def deleteHistory(): Unit =
-        ???
+      messages.clear()
+
+class StoredMessage( val id: Int,
+                     val username: Username,
+                     val content: MsgContent,
+                     val mention: Option[Username],
+                     val exprType: Option[ExprTree],
+                     val replyToId: Option[Long] )
