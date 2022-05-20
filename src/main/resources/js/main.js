@@ -4,14 +4,16 @@ document.addEventListener('DOMContentLoaded', function(){
 }, false);
 
 function submitMessageForm(){
+    console.log(JSON.stringify({msg: messageInput.value}))
     fetch(
-        "/send", 
+        "/send",
         {
             method: "POST",
             body: JSON.stringify({msg: messageInput.value})
         }
     ).then(response => response.json())
     .then(json => {
+        console.log(json)
         if(!json.err) {
             messageInput.value = ""
         }
