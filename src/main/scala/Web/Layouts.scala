@@ -28,7 +28,7 @@ object Layouts:
         getBoardMessage,
         getForm(
           "Your message:",
-          "/",
+          "/send",
           "Write your message",
         )
       )
