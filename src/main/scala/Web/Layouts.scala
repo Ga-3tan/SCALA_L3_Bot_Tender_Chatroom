@@ -1,5 +1,6 @@
 package Web
 
+import Data.MessageService.MsgContent
 import scalatags.Text.all.*
 import scalatags.Text.tags2
 
@@ -21,43 +22,46 @@ object Layouts:
       )
     )
 
+  def message(msgContent: String): Frag =
+    p(msgContent)
+
   def homePage(isLogged: Boolean = false): ScalaTag =
     bodyPage(
       getConnectionNavItems(isLogged),
       Seq(
         getBoardMessage,
         getForm(
-          "Your message:",
-          "/send",
-          "Write your message",
+          text = "Your message:",
+          placeholderText = "Write your message",
+          submitAction = "submitMessageForm(); return false",
         )
       )
     )
 
-  def loginPage(errorMsg: String = null): ScalaTag =
+  def loginPage(errorMsg: String = ""): ScalaTag =
     bodyPage(
       Seq(navItemHomePage),
       Seq(
         h1("Login"),
         getForm(
-          "Username:",
-          "/login",
-          "Enter your pseudo",
-          errorMsg
+          text = "Username:",
+          placeholderText = "Enter your pseudo",
+          submitPath = "/login",
+          errorMsg = errorMsg
         )
       )
     )
 
-  def registerPage(errorMsg: String = null): ScalaTag =
+  def registerPage(errorMsg: String = ""): ScalaTag =
     bodyPage(
       Seq(navItemHomePage),
       Seq(
         h1("Register"),
         getForm(
-          "Username:",
-          "/register",
-          "Enter your pseudo",
-          errorMsg
+          text = "Username:",
+          placeholderText = "Enter your pseudo",
+          submitPath = "/register",
+          errorMsg = errorMsg
         )
       )
     )
@@ -108,26 +112,27 @@ object Layouts:
   // chatroom display
   def getBoardMessage: ScalaTag =
     div(id := "boardMessage")(
-      //getMessageDiv,
       p(style := "text-align:center;")("Please wait, the messages are loading !"),
     )
 
   // A line in the chatroom.
-  def getMessageDiv: ScalaTag =
+  def getMessageDiv(author: String, msgContent: Data.MessageService.MsgContent): ScalaTag =
     div(`class` := "msg")(
-      span(`class` := "author")(),
-      span(`class` := "msg-content")(),
+      span(`class` := "author")(author),
+      msgContent,
     )
+
+  def getMessageSpan(msgContent: String): ScalaTag =
+    span(`class` := "msg-content")(msgContent)
 
   // Form to submit message or login.
   def getForm(text: String,
-              submitPath: String,
               placeholderText: String,
-              errorMsg: String = null): ScalaTag =
+              errorMsg: String = "",
+              submitPath: String = null,
+              submitAction: String = null): ScalaTag =
     val divError: Seq[ScalaTag] =
-      if errorMsg != null then
-        Seq(div(id := "errorDiv", `class` := "errorMsg",errorMsg))
-      else Seq()
+        Seq(div(id := "errorDiv", `class` := "errorMsg", errorMsg))
 
     val content: Seq[ScalaTag] =
       Seq(
@@ -136,8 +141,13 @@ object Layouts:
         input(`type` := "submit"),
       )
 
-    form(id := "msgForm", action := submitPath, method := "post")(
-       divError ++ content
-    )
+    if submitPath != null then
+      form(id := "msgForm", action := submitPath, method := "post")(
+         divError ++ content
+      )
+    else
+      form(id := "msgForm", onsubmit := submitAction)(
+        divError ++ content
+      )
 
 end Layouts

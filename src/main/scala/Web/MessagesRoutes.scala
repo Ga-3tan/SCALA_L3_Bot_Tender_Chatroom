@@ -44,21 +44,24 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
 
     @getSession(sessionSvc) // This decorator fills the `(session: Session)` part of the `index` method.
     @cask.postJson("/send")
-    def processMsg(msg: ujson.Value)(session: Session): String =
-      def jsonResponse(success: Boolean, err: String = ""): String =
+    def processMsg(msg: ujson.Value)(session: Session): ujson.Obj =
+      def jsonResponse(success: Boolean, err: String = ""): ujson.Obj =
         ujson.Obj(
           "success" -> success,
           "err" -> err
-        ).toString
+        )
 
       if session.getCurrentUser.isEmpty then
         jsonResponse(false, "No user is logged in")
       else if msg.toString == "" then
         jsonResponse(false, "The message is empty")
       else
+        msgSvc.add(sender = session.getCurrentUser.get, msg = Layouts.getMessageSpan(msg.toString))
         val messages = msgSvc.getLatestMessages(20)
+          .foldLeft("")((messageBoardContent, ltsMsg) => messageBoardContent + Layouts.getMessageDiv(ltsMsg._1, ltsMsg._2))
         for (ws <- websockets) {
-          ws.send(cask.Ws.Text(messages.toString()))
+          println(s"sending ${messages} to: ${ws.toString}")
+          ws.send(cask.Ws.Text(messages))
         }
         jsonResponse(true)
 
@@ -69,9 +72,10 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
     def subscribe(): cask.WebsocketResult =
       cask.WsHandler { channel =>
         websockets.addOne(channel)
+        val index = websockets.size-1
+        println(s"added new channel: ${channel.toString}")
         cask.WsActor {
-          case cask.Ws.Close(cask.Ws.Close.NormalClosure, "") => channel.send(cask.Ws.Close())
-          case _ => print("")
+          case cask.Ws.Close(_,_) => websockets.remove(index)
         }
       }
 
