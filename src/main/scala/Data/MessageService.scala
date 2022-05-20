@@ -37,19 +37,17 @@ trait MessageService:
 class MessageImpl extends MessageService:
     // TODO - Part 3 Step 4a: Store the messages and the corresponding user in memory.
     //       Implement methods to add new messages, to get the last 20 messages and to delete all existing messages.
-
-    val messages: mutable.ArrayBuffer[StoredMessage] = mutable.ArrayBuffer()
+    val history: mutable.ArrayBuffer[StoredMessage] = mutable.ArrayBuffer()
 
     override def add(sender: Username, msg: MsgContent, mention: Option[Username] = None, exprType: Option[ExprTree] = None, replyToId: Option[Long] = None): Long =
-      val id = messages.size
-      messages.addOne(StoredMessage(id, sender, msg, mention, exprType, replyToId))
-      id
+      history.addOne(StoredMessage(id, sender, msg, mention, exprType, replyToId))
+      history.size - 1
 
-    override def getLatestMessages(n: Int) =
-      messages.take(20).map(m => (m.username, m.content)).toSeq
+    override def getLatestMessages(n: Int): Seq[(Username, MsgContent)] =
+      history.takeRight(20).map(m => (m.username, m.content)).toSeq
 
     override def deleteHistory(): Unit =
-      messages.clear()
+      history.clear()
 
 class StoredMessage( val id: Int,
                      val username: Username,

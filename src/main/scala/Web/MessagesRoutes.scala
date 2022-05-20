@@ -37,11 +37,16 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
     //      - The message is empty
     //
     //      If no error occurred, every other user is notified with the last 20 messages
-    //
+    @getSession(sessionSvc) // This decorator fills the `(session: Session)` part of the `index` method.
+    @cask.postJson("/send")
+    def processMsg(msg: ujson.Value)(session: Session): ujson =
+        response = ujson.Obj("success" -> "", "err" -> "")
+
+
     // TODO - Part 3 Step 4c: Process and store the new websocket connection made to `/subscribe`
-    //
+
     // TODO - Part 3 Step 4d: Delete the message history when a GET is made to `/clearHistory`
-    //
+
     // TODO - Part 3 Step 5: Modify the code of step 4b to process the messages sent to the bot (message
     //      starts with `@bot `). This message and its reply from the bot will be added to the message
     //      store together.
