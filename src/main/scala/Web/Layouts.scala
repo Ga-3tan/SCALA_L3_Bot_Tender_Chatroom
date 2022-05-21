@@ -127,7 +127,7 @@ object Layouts:
   def getMessageSpan(msgContent: String): ScalaTag =
     span(`class` := "msg-content")(msgContent)
 
-  // Form to submit message or login. // TODO to reformat
+  // Form to submit message or login.
   def getForm(text: String,
               placeholderText: String,
               errorMsg: String = "",
