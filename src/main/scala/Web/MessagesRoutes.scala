@@ -66,15 +66,14 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
 
         // Process response from chatbot
         try
-          val tokenized = tokenizerSvc.tokenize(message)
+          val tokenized = tokenizerSvc.tokenize(message.toLowerCase)
 
           val parser = new Parser(tokenized)
           val expr = parser.parsePhrases()
 
-          val printResult = analyzerSvc.reply(session)(expr)
           msgSvc.add(
             sender = "Bot-tender",
-            msg = Layouts.getMessageSpan(printResult),
+            msg = Layouts.getMessageSpan(analyzerSvc.reply(session)(expr)),
             mention = Option("@bot"),
             replyToId = Option(id)
           )
@@ -90,8 +89,7 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
 
     def send20LastMessageToAll(): Unit =
       for (ws <- websockets) {
-        val l = Layouts.generateMessageBoardContent(msgSvc.getLatestMessages(20)).foldLeft("")(_+_)
-        ws.send(cask.Ws.Text(l))
+        ws.send(cask.Ws.Text(Layouts.generateMessageBoardContent(msgSvc.getLatestMessages(20)).foldLeft("")(_+_)))
       }
 
     // TODO - Part 3 Step 4c: Process and store the new websocket connection made to `/subscribe`

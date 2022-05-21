@@ -42,11 +42,11 @@ class AnalyzerService(productSvc: ProductService,
       /* User interaction  */
       case Identify(user) =>
         val pseudo = user.tail
-        if !accountSvc.isAccountExisting(pseudo)
-        then accountSvc.addAccount(pseudo, 30)
-        session.setCurrentUser(pseudo)
-        s"Bonjour $pseudo !"
-        
+        session.getCurrentUser match
+          case Some(user) if user != pseudo => s"Euh... Non, vous êtes $user."
+          case Some(user) => s"Je sais déjà qui vous êtes, vous êtes loggé."
+          case _ => s"Bonjour, veuillez vous identifier via le log-in svp."
+
       /** Requests */
       case RequestBalance() =>
         if session.getCurrentUser.isDefined then
