@@ -80,6 +80,7 @@ object Layouts:
   // head
   def getHeader: ScalaTag =
     head(
+      meta(charset:="utf-8"),
       link(rel := "stylesheet", href := "/static/resources/css/main.css"),
       script(src := "/static/resources/js/main.js")
     )

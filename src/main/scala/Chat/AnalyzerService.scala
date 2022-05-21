@@ -44,8 +44,8 @@ class AnalyzerService(productSvc: ProductService,
         val pseudo = user.tail
         session.getCurrentUser match
           case Some(user) if user != pseudo => s"Euh... Non, vous êtes $user."
-          case Some(user) => s"Je sais déjà qui vous êtes, vous êtes loggé."
-          case _ => s"Bonjour, veuillez vous identifier via le log-in svp."
+          case Some(user) => s"Je sais déjà qui vous êtes $user, vous êtes loggé."
+          case _ => s"Bonjour, veuillez vous identifier via le log-in svp." // useless if the user can't send message when not logged.
 
       /** Requests */
       case RequestBalance() =>
