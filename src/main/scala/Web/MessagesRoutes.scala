@@ -61,7 +61,11 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
         val message = msg.str.stripPrefix("@bot ")
 
         // Process message of user
-        val id = msgSvc.add(sender = session.getCurrentUser.get, msg = Layouts.getMessageSpan(message))
+        val id = msgSvc.add(
+          sender = session.getCurrentUser.get,
+          msg = Layouts.getMessageSpan(message),
+          mention = Option("bot")
+        )
         send20LastMessageToAll()
 
         // Process response from chatbot
@@ -74,17 +78,21 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
           msgSvc.add(
             sender = "Bot-tender",
             msg = Layouts.getMessageSpan(analyzerSvc.reply(session)(expr)),
-            mention = Option("@bot"),
             replyToId = Option(id)
           )
           send20LastMessageToAll()
+
           jsonResponse(true)
         catch
           case e: UnexpectedTokenException => jsonResponse(false, s"Invalid input. ${e.getMessage}")
 
       else
-        msgSvc.add(sender = session.getCurrentUser.get, msg = Layouts.getMessageSpan(msg.str))
+        msgSvc.add(
+          sender = session.getCurrentUser.get,
+          msg = Layouts.getMessageSpan(msg.str)
+        )
         send20LastMessageToAll()
+
         jsonResponse(true)
 
     def send20LastMessageToAll(): Unit =
@@ -96,10 +104,10 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
 
     @cask.websocket("/subscribe")
     def subscribe(): cask.WebsocketResult =
-      cask.WsHandler { (channel: cask.endpoints.WsChannelActor) =>
+      cask.WsHandler { channel =>
         websockets.addOne(channel)
         cask.WsActor {
-          case cask.Ws.Close(_,_) => websockets -= channel
+          case cask.Ws.Close(_,_) => websockets -= channel // handle close, when closed : remove websocket
         }
       }
 
@@ -108,9 +116,7 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
     @cask.get("/clearHistory")
     def clearHistory(): Unit =
       msgSvc.deleteHistory()
-      for (ws <- websockets) {
-        ws.send(cask.Ws.Text(""))
-      }
+      send20LastMessageToAll()
 
     // TODO - Part 3 Step 5: Modify the code of step 4b to process the messages sent to the bot (message
     //      starts with `@bot `). This message and its reply from the bot will be added to the message
