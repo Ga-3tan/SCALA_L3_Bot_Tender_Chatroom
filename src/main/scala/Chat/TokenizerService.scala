@@ -37,7 +37,7 @@ class TokenizerService(spellCheckerSvc: SpellCheckerService):
       case "prix" => Token.PRIX
       // Actions
       case "etre" => Token.ETRE
-      case "appeler" => Token.ETRE
+      case "appeler" => Token.APPELER
       case "vouloir" => Token.VOULOIR
       case "connaitre" => Token.CONNAITRE
       case "savoir" => Token.CONNAITRE
@@ -62,10 +62,10 @@ class TokenizerService(spellCheckerSvc: SpellCheckerService):
       case "jackhammer" => Token.MARQUE
       case "tenebreuse" => Token.MARQUE
       // stop words
-      case "le" => Token.STOPWORD
-      case "me" => Token.STOPWORD
-      case "mon" => Token.STOPWORD
-      case "de" => Token.STOPWORD
+      case "le" => Token.LE
+      case "me" => Token.ME
+      case "mon" => Token.MON
+      case "de" => Token.DE
       // Util
       case _ if word.head == '_' => Token.PSEUDO
       case _ if word.toDoubleOption.isDefined => Token.NUM

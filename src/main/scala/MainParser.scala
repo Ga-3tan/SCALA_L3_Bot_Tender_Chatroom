@@ -28,7 +28,6 @@ object MainParser:
         case s =>
           try
             val tokenized = tokenizerSvc.tokenize(s)
-
             val parser = new Parser(tokenized)
             val expr = parser.parsePhrases()
 

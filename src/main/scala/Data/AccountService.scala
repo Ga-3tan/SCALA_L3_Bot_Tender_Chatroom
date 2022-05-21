@@ -47,6 +47,7 @@ class AccountImpl extends AccountService:
   def isAccountExisting(user: String): Boolean = accounts.contains(user)
 
   def purchase(user: String, amount: Double): Double =
+    assert(isAccountExisting(user))
     accounts(user) -= amount
     accounts(user)
 

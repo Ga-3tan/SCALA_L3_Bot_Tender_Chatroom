@@ -1,5 +1,7 @@
 package Chat
 
+import scala.annotation.tailrec
+
 class UnexpectedTokenException(msg: String) extends Exception(msg) {}
 
 // step 4
@@ -12,15 +14,11 @@ class Parser(tokenized: Tokenized):
   var curTuple: (String, Token) = tokenized.nextToken()
 
   def curValue: String = curTuple._1
-
   def curToken: Token = curTuple._2
 
   /** Reads the next token and assigns it into the global variable curTuple */
-  /** When meeting a STOPWORD Token, ignore it and skip to the next token   */
   def readToken(): Unit =
-    val token = tokenized.nextToken()
-    if token._2 == Token.STOPWORD then readToken()
-    else curTuple = token
+    curTuple = tokenized.nextToken()
 
   /** "Eats" the expected token and returns it value, or terminates with an error. */
   private def eat(token: Token): String =
@@ -42,23 +40,34 @@ class Parser(tokenized: Tokenized):
 
     if curToken == JE then
       readToken()
-      if curToken == ETRE then
-        readToken()
-        parseETRE()
-      else if curToken == VOULOIR then
-        readToken()
-        parseVOULOIR()
-      else expected(ETRE, VOULOIR)
+      parseJE()
     else if curToken == QUEL then
       readToken()
       eat(ETRE)
+      eat(LE)
       eat(PRIX)
+      eat(DE)
       RequestPrice(handleProductRequest())
     else if curToken == COMBIEN then
       readToken()
       eat(COUTER)
       RequestPrice(handleProductRequest())
     else expected(JE, QUEL, COMBIEN)
+  }
+
+  def parseJE(): ExprTree = {
+    if curToken == ETRE then
+      readToken()
+      parseETRE()
+    else if curToken == VOULOIR then
+      readToken()
+      parseVOULOIR()
+    else if curToken == ME then
+      readToken()
+      eat(APPELER)
+      if curToken == PSEUDO then Identify(curValue)
+      else expected(PSEUDO)
+    else expected(ETRE, VOULOIR, ME)
   }
 
   def parseETRE(): ExprTree = {
@@ -76,31 +85,41 @@ class Parser(tokenized: Tokenized):
   def parseVOULOIR(): ExprTree = {
     if curToken == CONNAITRE then
       readToken()
-      if curToken == SOLDE then
-        readToken()
-        RequestBalance()
-      else if curToken == PRIX then
-        readToken()
-        RequestPrice(handleProductRequest())
-      else if curToken == QUEL then
-        readToken()
-        eat(ETRE)
-        eat(PRIX)
-        RequestPrice(handleProductRequest())
-      else if curToken == COMBIEN then
-        readToken()
-        eat(COUTER)
-        RequestPrice(handleProductRequest())
-      else expected(SOLDE, QUEL, COMBIEN)
+      parseCONNAITRE()
     else if curToken == COMMANDER then
       readToken()
       RequestOrder(handleProductRequest())
-    else if curToken == SOLDE then
+    else if curToken == MON then
       readToken()
+      eat(SOLDE)
       RequestBalance()
     else if curToken == NUM then // Pas de readToken après !! C'est intentionnel !
       RequestOrder(handleProductRequest())
     else expected(CONNAITRE, COMMANDER)
+  }
+
+  def parseCONNAITRE(): ExprTree = {
+    if curToken == MON then
+      readToken()
+      eat(SOLDE)
+      RequestBalance()
+    else if curToken == QUEL then
+      readToken()
+      eat(ETRE)
+      eat(LE)
+      eat(PRIX)
+      eat(DE)
+      RequestPrice(handleProductRequest())
+    else if curToken == LE then
+      readToken()
+      eat(PRIX)
+      eat(DE)
+      RequestPrice(handleProductRequest())
+    else if curToken == COMBIEN then
+      readToken()
+      eat(COUTER)
+      RequestPrice(handleProductRequest())
+    else expected(QUEL, COMBIEN)
   }
 
   def parseProduct(): ExprTree = {
@@ -113,19 +132,17 @@ class Parser(tokenized: Tokenized):
     Order(quantity, product, brand)
   }
 
-  def handleProductRequest(tLeft: ExprTree = null): ExprTree = {
-    val tRight: ExprTree =
-      if tLeft == null then parseProduct()
-      else
-        if curToken == ET then
-          readToken()
-          And(tLeft, parseProduct())
-        else if curToken == OU then
-          readToken()
-          Or(tLeft, parseProduct())
-        else expected(ET, OU)
+  def handleProductRequest(): ExprTree = {
+    @tailrec
+    def loop(tLeft: ExprTree): ExprTree = {
+      if curToken == ET  then
+        readToken()
+        loop(And(tLeft, parseProduct()))
+      else if curToken == OU then
+        readToken()
+        loop(Or(tLeft, parseProduct()))
+      else tLeft
+    }
 
-    if curToken == ET || curToken == OU then // Pas de readToken après !! C'est intentionnel !
-      handleProductRequest(tRight)
-    else tRight
+    loop(parseProduct())
   }

@@ -49,20 +49,19 @@ class AnalyzerService(productSvc: ProductService,
 
       /** Requests */
       case RequestBalance() =>
-        if session.getCurrentUser.isDefined then
-          s"Le montant actuel de votre solde est de CHF ${accountSvc.getAccountBalance(session.getCurrentUser.get)}"
-        else msgIdentificationNeeded
+        session.getCurrentUser
+          .map(user => s"Le montant actuel de votre solde est de CHF ${accountSvc.getAccountBalance(user)}")
+          .getOrElse(msgIdentificationNeeded)
       case RequestOrder(t) =>
-        if session.getCurrentUser.isDefined then
+        session.getCurrentUser.map(user => {
           val price = computePrice(t)
-          val user = session.getCurrentUser.get
           var balance = accountSvc.getAccountBalance(user)
           if balance >= price then
             balance = accountSvc.purchase(user, price)
             s"Voici donc ${inner(t)} ! Cela coûte CHF $price et votre nouveau solde est de CHF $balance."
           else
             s"Vous n'avez pas assez d'argent dans votre solde. Cela coûte CHF $price. et votre solde est CHF $balance."
-        else msgIdentificationNeeded
+        }).getOrElse(msgIdentificationNeeded)
       case RequestPrice(t) => s"Cela nous coûte CHF ${computePrice(t)} au total"
 
       /* Logical operator */

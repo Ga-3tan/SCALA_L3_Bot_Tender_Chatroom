@@ -27,9 +27,9 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
     @cask.get("/")
     def index()(session: Session): ScalaTag =
       val messages = msgSvc.getLatestMessages(20)
-      Layouts.homePage(session.getCurrentUser.isDefined, if messages.nonEmpty then messages else null)
+      Layouts.homePage(session.getCurrentUser.isDefined, messages)
 
-    // TODO - Part 3 Step 4b: Process the new messages sent as JSON object to `/send`. The JSON looks
+    // Process the new messages sent as JSON object to `/send`. The JSON looks
     //      like this: `{ "msg" : "The content of the message" }`.
     //
     //      A JSON object is returned. If an error occurred, it looks like this:
@@ -40,6 +40,7 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
     //      The following are treated as error:
     //      - No user is logged in
     //      - The message is empty
+    //      The exceptions raised by the `Parser` will be treated as an error too
     //
     //      If no error occurred, every other user is notified with the last 20 messages
     @getSession(sessionSvc) // This decorator fills the `(session: Session)` part of the `index` method.
@@ -55,24 +56,25 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
       else if msg.str.startsWith("@bot ") then
         val message = msg.str.stripPrefix("@bot ")
 
-        // Process message of user
-        val id = msgSvc.add(
-          sender = session.getCurrentUser.get,
-          msg = Layouts.getMessageSpan(message),
-          mention = Option("bot")
-        )
-        send20LastMessageToAll()
-
-        // Process response from chatbot
         try
           val tokenized = tokenizerSvc.tokenize(message.toLowerCase)
-
           val parser = new Parser(tokenized)
           val expr = parser.parsePhrases()
 
+          val botReply = analyzerSvc.reply(session)(expr)
+
+          // Process message of user
+          val id = msgSvc.add(
+            sender = session.getCurrentUser.get,
+            msg = Layouts.getMessageSpan(message),
+            mention = Option("bot")
+          )
+          send20LastMessageToAll()
+
+          // Process response from chatbot
           msgSvc.add(
             sender = "Bot-tender",
-            msg = Layouts.getMessageSpan(analyzerSvc.reply(session)(expr)),
+            msg = Layouts.getMessageSpan(botReply),
             replyToId = Option(id)
           )
           send20LastMessageToAll()
@@ -91,11 +93,13 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
         jsonResponse(true)
 
     def send20LastMessageToAll(): Unit =
-      for (ws <- websockets) {
-        ws.send(cask.Ws.Text(Layouts.generateMessageBoardContent(msgSvc.getLatestMessages(20)).foldLeft("")(_+_)))
-      }
+      websockets.foreach(
+        ws => ws.send(cask.Ws.Text(
+          Layouts.getBoardMessages(msgSvc.getLatestMessages(20)).foldLeft("")(_+_))
+        )
+      )
 
-    // TODO - Part 3 Step 4c: Process and store the new websocket connection made to `/subscribe`
+    // Process and store the new websocket connection made to `/subscribe`
     @cask.websocket("/subscribe")
     def subscribe(): cask.WebsocketResult =
       cask.WsHandler { channel =>
@@ -105,19 +109,11 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
         }
       }
 
-    // TODO - Part 3 Step 4d: Delete the message history when a GET is made to `/clearHistory`
-
+    // Delete the message history when a GET is made to `/clearHistory`
     @cask.get("/clearHistory")
     def clearHistory(): Unit =
       msgSvc.deleteHistory()
       send20LastMessageToAll()
-
-    // TODO - Part 3 Step 5: Modify the code of step 4b to process the messages sent to the bot (message
-    //      starts with `@bot `). This message and its reply from the bot will be added to the message
-    //      store together.
-    //
-    //      The exceptions raised by the `Parser` will be treated as an error (same as in step 4b)
-
 
     initialize()
 end MessagesRoutes

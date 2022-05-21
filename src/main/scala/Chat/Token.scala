@@ -10,6 +10,7 @@ enum Token:
   ASSOIFFE,
   AFFAME,
   // Actions
+  APPELER,
   ETRE,
   VOULOIR,
   COMMANDER,
@@ -21,6 +22,11 @@ enum Token:
   // Products
   PRODUIT,
   MARQUE,
+  // Determinant
+  LE,
+  DE,
+  ME,
+  MON,
   // Util
   PSEUDO,
   NUM,
@@ -28,7 +34,6 @@ enum Token:
   PRIX,
   QUEL,
   COMBIEN,
-  STOPWORD,
   EOL,
   UNKNOWN,
   BAD

@@ -25,12 +25,11 @@ object Layouts:
   def message(msgContent: String): Frag =
     p(msgContent)
 
-	
   def homePage(isLogged: Boolean = false, messages : Seq[(Username, MsgContent)] = null): ScalaTag =
     bodyPage(
       getConnectionNavItems(isLogged),
       Seq(
-        getBoardMessage(messages),
+        div(id := "boardMessage")(getBoardMessages(messages)),
         getForm(
           text = "Your message:",
           placeholderText = "Write your message",
@@ -112,20 +111,10 @@ object Layouts:
       )
 
   // chatroom display
-  def getBoardMessage(messages : Seq[(Username, MsgContent)] = null): ScalaTag =
-    div(id := "boardMessage")(
-      if messages == null then
-        p(style := "text-align:center;")("No messages have beeen sent yet")
-      else
-        // generate messages board
-        generateMessageBoardContent(messages)
-    )
-
-  // Message Board Content
-  def generateMessageBoardContent(messages : Seq[(Username, MsgContent)]): Seq[ScalaTag] =
-    for (m <- messages) yield {
-      getMessageDiv(m._1, m._2)
-    }
+  def getBoardMessages(messages : Seq[(Username, MsgContent)] = null): Seq[ScalaTag] =
+    if messages == null || messages.isEmpty then
+      Seq(p(style := "text-align:center;")("No messages have beeen sent yet"))
+    else messages.map(m => getMessageDiv(m._1, m._2))
 
   // A line in the chatroom.
   def getMessageDiv(author: Username, msgContent: MsgContent): ScalaTag =
@@ -138,7 +127,7 @@ object Layouts:
   def getMessageSpan(msgContent: String): ScalaTag =
     span(`class` := "msg-content")(msgContent)
 
-  // Form to submit message or login. // TODO TODO to reformat
+  // Form to submit message or login. // TODO to reformat
   def getForm(text: String,
               placeholderText: String,
               errorMsg: String = "",
