@@ -1,6 +1,6 @@
 package Web
 
-import Data.MessageService.MsgContent
+import Data.MessageService.{MsgContent, Username}
 import scalatags.Text.all.*
 import scalatags.Text.tags2
 
@@ -25,11 +25,12 @@ object Layouts:
   def message(msgContent: String): Frag =
     p(msgContent)
 
-  def homePage(isLogged: Boolean = false, boardContent: Seq[ScalaTag]): ScalaTag =
+	
+  def homePage(isLogged: Boolean = false, messages : Seq[(Username, MsgContent)] = null): ScalaTag =
     bodyPage(
       getConnectionNavItems(isLogged),
       Seq(
-        getBoardMessage(boardContent),
+        getBoardMessage(messages),
         getForm(
           text = "Your message:",
           placeholderText = "Write your message",
@@ -80,6 +81,7 @@ object Layouts:
   // head
   def getHeader: ScalaTag =
     head(
+      meta(charset:="utf-8"),
       link(rel := "stylesheet", href := "/static/resources/css/main.css"),
       script(src := "/static/resources/js/main.js")
     )
@@ -110,24 +112,33 @@ object Layouts:
       )
 
   // chatroom display
-  def getBoardMessage(content: Seq[ScalaTag]): ScalaTag =
-    if content.isEmpty then
-      div(id := "boardMessage")(
-        p(style := "text-align:center;")("Please wait, the messages are loading !"),
-      )
-    else div(id := "boardMessage")(content)
+  def getBoardMessage(messages : Seq[(Username, MsgContent)] = null): ScalaTag =
+    div(id := "boardMessage")(
+      if messages == null then
+        p(style := "text-align:center;")("No messages have beeen sent yet")
+      else
+        // generate messages board
+        generateMessageBoardContent(messages)
+    )
+
+  // Message Board Content
+  def generateMessageBoardContent(messages : Seq[(Username, MsgContent)]): Seq[ScalaTag] =
+    for (m <- messages) yield {
+      getMessageDiv(m._1, m._2)
+    }
 
   // A line in the chatroom.
-  def getMessageDiv(author: String, msgContent: Data.MessageService.MsgContent): ScalaTag =
+  def getMessageDiv(author: Username, msgContent: MsgContent): ScalaTag =
     div(`class` := "msg")(
       span(`class` := "author")(author),
       msgContent,
     )
 
+  // Content of a message
   def getMessageSpan(msgContent: String): ScalaTag =
     span(`class` := "msg-content")(msgContent)
 
-  // Form to submit message or login.
+  // Form to submit message or login. // TODO TODO to reformat
   def getForm(text: String,
               placeholderText: String,
               errorMsg: String = "",
