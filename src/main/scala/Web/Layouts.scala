@@ -25,11 +25,11 @@ object Layouts:
   def message(msgContent: String): Frag =
     p(msgContent)
 
-  def homePage(isLogged: Boolean = false): ScalaTag =
+  def homePage(isLogged: Boolean = false, boardContent: Seq[ScalaTag]): ScalaTag =
     bodyPage(
       getConnectionNavItems(isLogged),
       Seq(
-        getBoardMessage,
+        getBoardMessage(boardContent),
         getForm(
           text = "Your message:",
           placeholderText = "Write your message",
@@ -110,10 +110,12 @@ object Layouts:
       )
 
   // chatroom display
-  def getBoardMessage: ScalaTag =
-    div(id := "boardMessage")(
-      p(style := "text-align:center;")("Please wait, the messages are loading !"),
-    )
+  def getBoardMessage(content: Seq[ScalaTag]): ScalaTag =
+    if content.isEmpty then
+      div(id := "boardMessage")(
+        p(style := "text-align:center;")("Please wait, the messages are loading !"),
+      )
+    else div(id := "boardMessage")(content)
 
   // A line in the chatroom.
   def getMessageDiv(author: String, msgContent: Data.MessageService.MsgContent): ScalaTag =

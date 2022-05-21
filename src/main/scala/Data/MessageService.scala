@@ -40,7 +40,7 @@ class MessageImpl extends MessageService:
     val history: mutable.ArrayBuffer[StoredMessage] = mutable.ArrayBuffer()
 
     override def add(sender: Username, msg: MsgContent, mention: Option[Username] = None, exprType: Option[ExprTree] = None, replyToId: Option[Long] = None): Long =
-      history.addOne(StoredMessage(id, sender, msg, mention, exprType, replyToId))
+      history.addOne(StoredMessage(history.size, sender, msg, mention, exprType, replyToId))
       history.size - 1
 
     override def getLatestMessages(n: Int): Seq[(Username, MsgContent)] =
