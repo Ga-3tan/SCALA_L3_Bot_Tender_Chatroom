@@ -1,7 +1,8 @@
 package Web
 
-import Chat.{AnalyzerService, TokenizerService}
-import Data.{MessageService, AccountService, SessionService, Session}
+import Chat.{AnalyzerService, Parser, TokenizerService, UnexpectedTokenException}
+import Data.{AccountService, MessageService, Session, SessionService}
+
 import scala.collection.mutable
 import castor.Context.Simple.global
 
@@ -54,10 +55,36 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
 
       if session.getCurrentUser.isEmpty then
         jsonResponse(false, "No user is logged in")
-      else if msg.toString == "" then
+      else if msg.str == "" then
         jsonResponse(false, "The message is empty")
+      else if msg.str.startsWith("@bot ") then
+        val message = msg.str.stripPrefix("@bot ")
+
+        // Process message of user
+        val id = msgSvc.add(sender = session.getCurrentUser.get, msg = Layouts.getMessageSpan(message))
+        send20LastMessageToAll()
+
+        // Process response from chatbot
+        try
+          val tokenized = tokenizerSvc.tokenize(message)
+
+          val parser = new Parser(tokenized)
+          val expr = parser.parsePhrases()
+
+          val printResult = analyzerSvc.reply(session)(expr)
+          msgSvc.add(
+            sender = "Bot-tender",
+            msg = Layouts.getMessageSpan(printResult),
+            mention = Option("@bot"),
+            replyToId = Option(id)
+          )
+          send20LastMessageToAll()
+          jsonResponse(true)
+        catch
+          case e: UnexpectedTokenException => jsonResponse(false, s"Invalid input. ${e.getMessage}")
+
       else
-        msgSvc.add(sender = session.getCurrentUser.get, msg = Layouts.getMessageSpan(msg.toString.stripPrefix("\"").stripSuffix("\"")))
+        msgSvc.add(sender = session.getCurrentUser.get, msg = Layouts.getMessageSpan(msg.str))
         send20LastMessageToAll()
         jsonResponse(true)
 
@@ -92,7 +119,6 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
     //      store together.
     //
     //      The exceptions raised by the `Parser` will be treated as an error (same as in step 4b)
-
 
 
     initialize()
