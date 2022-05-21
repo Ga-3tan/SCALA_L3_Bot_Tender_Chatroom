@@ -25,7 +25,8 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
     @getSession(sessionSvc) // This decorator fills the `(session: Session)` part of the `index` method.
     @cask.get("/")
     def index()(session: Session): ScalaTag =
-      Layouts.homePage(session.getCurrentUser.isDefined)
+      val messages = msgSvc.getLatestMessages(20)
+      Layouts.homePage(session.getCurrentUser.isDefined, if messages.nonEmpty then messages else null)
 
 
     // TODO - Part 3 Step 4b: Process the new messages sent as JSON object to `/send`. The JSON looks
@@ -56,26 +57,24 @@ class MessagesRoutes(tokenizerSvc: TokenizerService,
       else if msg.toString == "" then
         jsonResponse(false, "The message is empty")
       else
-        msgSvc.add(sender = session.getCurrentUser.get, msg = Layouts.getMessageSpan(msg.toString))
-        val messages = msgSvc.getLatestMessages(20)
-          .foldLeft("")((messageBoardContent, ltsMsg) => messageBoardContent + Layouts.getMessageDiv(ltsMsg._1, ltsMsg._2))
-        for (ws <- websockets) {
-          println(s"sending ${messages} to: ${ws.toString}")
-          ws.send(cask.Ws.Text(messages))
-        }
+        msgSvc.add(sender = session.getCurrentUser.get, msg = Layouts.getMessageSpan(msg.toString.stripPrefix("\"").stripSuffix("\"")))
+        send20LastMessageToAll()
         jsonResponse(true)
 
+    def send20LastMessageToAll(): Unit =
+      for (ws <- websockets) {
+        val l = Layouts.generateMessageBoardContent(msgSvc.getLatestMessages(20)).foldLeft("")(_+_)
+        ws.send(cask.Ws.Text(l))
+      }
 
     // TODO - Part 3 Step 4c: Process and store the new websocket connection made to `/subscribe`
 
     @cask.websocket("/subscribe")
     def subscribe(): cask.WebsocketResult =
-      cask.WsHandler { channel =>
+      cask.WsHandler { (channel: cask.endpoints.WsChannelActor) =>
         websockets.addOne(channel)
-        val index = websockets.size-1
-        println(s"added new channel: ${channel.toString}")
         cask.WsActor {
-          case cask.Ws.Close(_,_) => websockets.remove(index)
+          case cask.Ws.Close(_,_) => websockets -= channel
         }
       }
 
