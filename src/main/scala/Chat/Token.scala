@@ -2,23 +2,34 @@ package Chat
 
 enum Token:
   case // Terms
-       BONJOUR, 
-       JE,
-       SVP,
-       ASSOIFFE,
-       AFFAME,
-       // Actions
-       ETRE,
-       VOULOIR,
-       // Logic Operators
-       ET,
-       OU,
-       // Products
-       PRODUCT,
-       // Util
-       PSEUDO,
-       NUM,
-       EOL,
-       UNKNOWN,
-       BAD
+  // Part 2 Step 1
+  BONJOUR,
+  SVP,
+  JE,
+  // Etat
+  ASSOIFFE,
+  AFFAME,
+  // Actions
+  ETRE,
+  VOULOIR,
+  COMMANDER,
+  CONNAITRE,
+  COUTER,
+  // Logic Operators
+  ET,
+  OU,
+  // Products
+  PRODUIT,
+  MARQUE,
+  // Util
+  PSEUDO,
+  NUM,
+  SOLDE,
+  PRIX,
+  QUEL,
+  COMBIEN,
+  STOPWORD,
+  EOL,
+  UNKNOWN,
+  BAD
 end Token

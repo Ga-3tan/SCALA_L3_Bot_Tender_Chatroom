@@ -28,6 +28,50 @@ object Dictionary:
     "ou" -> "ou",
     "svp" -> "svp",
     "stp" -> "svp",
-    // TODO - Part 2 Step 1
+
+    // Part 2 Step 1
+    "est" -> "etre",
+    "appelle" -> "appeler",
+
+    "voudrais" -> "vouloir",
+    "connaître" -> "connaitre",
+    "savoir" -> "connaitre",
+    "commander" -> "commander",
+
+    "quel" -> "quel",
+    "quelle" -> "quel",
+    "combien" -> "combien",
+    "coûte" -> "couter",
+    "coûtent" -> "couter",
+    "solde" -> "solde",
+    "prix" -> "prix",
+
+    // Marques
+    "maison" -> "maison",
+    "cailler" -> "cailler",
+    "farmer"-> "farmer",
+    "boxer" -> "boxer",
+    "wittekop" -> "wittekop",
+    "punkipa" -> "punkipa",
+    "jackhammer" -> "jackhammer",
+    "ténébreuse" -> "tenebreuse",
+
+    // Num
+    "un" -> "1",
+    "une" -> "1",
+
+    // STOP WORDS
+    "l" -> "le",
+    "la" -> "le",
+    "le" -> "le",
+    "la" -> "le",
+    "l" -> "le",
+    "me" -> "me",
+    "m" -> "me",
+    "mon" -> "mon",
+    "ma" -> "mon",
+    "de" -> "de",
+    "des" -> "de",
+    "d" -> "de",
   )
 end Dictionary

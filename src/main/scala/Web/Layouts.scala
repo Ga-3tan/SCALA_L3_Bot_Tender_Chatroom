@@ -113,7 +113,7 @@ object Layouts:
   def getBoardMessage(messages : Seq[(Username, MsgContent)] = null): ScalaTag =
     div(id := "boardMessage")(
       if messages == null then
-        p(style := "text-align:center;")("No messages yet.")
+        p(style := "text-align:center;")("No messages have beeen sent yet")
       else
         // generate messages board
         generateMessageBoardContent(messages)
