@@ -10,9 +10,9 @@ type ScalaTag = scalatags.Text.TypedTag[String]
   * Assembles the method used to layout ScalaTags
   */
 object Layouts:
-  /*********************
-  *  ----- Pages ----- *
-  *********************/
+  /** *******************
+    * ----- Pages ----- *
+    * ******************* */
   def bodyPage(navItems: Seq[ScalaTag], contents: Seq[ScalaTag]): ScalaTag =
     html(
       getHeader,
@@ -25,11 +25,11 @@ object Layouts:
   def message(msgContent: String): Frag =
     p(msgContent)
 
-  def homePage(isLogged: Boolean = false, messages : Seq[(Username, MsgContent)] = null): ScalaTag =
+  def homePage(isLogged: Boolean = false, messages: Seq[(Username, MsgContent)] = null): ScalaTag =
     bodyPage(
       getConnectionNavItems(isLogged),
       Seq(
-        div(id := "boardMessage")(getBoardMessages(messages)),
+        div(id := "boardMessage")(getBoardMessageContent(messages)),
         getForm(
           text = "Your message:",
           placeholderText = "Write your message",
@@ -74,13 +74,14 @@ object Layouts:
       ),
     )
 
-  /************************
-  *  ----- elements ----- *
-  ************************/
+  /** **********************
+    * ----- elements ----- *
+    * ********************** */
+  
   // head
   def getHeader: ScalaTag =
     head(
-      meta(charset:="utf-8"),
+      meta(charset := "utf-8"),
       link(rel := "stylesheet", href := "/static/resources/css/main.css"),
       script(src := "/static/resources/js/main.js")
     )
@@ -111,7 +112,7 @@ object Layouts:
       )
 
   // chatroom display
-  def getBoardMessages(messages : Seq[(Username, MsgContent)] = null): Seq[ScalaTag] =
+  def getBoardMessageContent(messages: Seq[(Username, MsgContent)] = null): Seq[ScalaTag] =
     if messages == null || messages.isEmpty then
       Seq(p(style := "text-align:center;")("No messages have beeen sent yet"))
     else messages.map(m => getMessageDiv(m._1, m._2))
@@ -134,7 +135,7 @@ object Layouts:
               submitPath: String = null,
               submitAction: String = null): ScalaTag =
     val divError: Seq[ScalaTag] =
-        Seq(div(id := "errorDiv", `class` := "errorMsg", errorMsg))
+      Seq(div(id := "errorDiv", `class` := "errorMsg", errorMsg))
 
     val content: Seq[ScalaTag] =
       Seq(
@@ -145,7 +146,7 @@ object Layouts:
 
     if submitPath != null then
       form(id := "msgForm", action := submitPath, method := "post")(
-         divError ++ content
+        divError ++ content
       )
     else
       form(id := "msgForm", onsubmit := submitAction)(
